@@ -18,12 +18,21 @@ class Service:
         return Service(name=unit_name.removesuffix(b'.service'), unit=unit)
     
     def is_down(self) -> bool:
+        # Ensure the service is loaded AND inactive first
+        if self.unit.Unit.LoadState != b'loaded':
+            return False
+        if self.unit.Unit.ActiveState == b'active':
+            return False
+        # These means we don't care if the service is stopped, it is allowed to do that
+        if self.unit.Service.Type in IGNORE_STOPPED_SERVICE_TYPES:
+            return False
         wantedBy = set([w.strip() for w in self.unit.Unit.WantedBy])
-        wantedBySignificant = wantedBy - IGNORE_TARGETS
-        return self.unit.Unit.ActiveState != b'active' and \
-                self.unit.Unit.LoadState == b'loaded' and \
-                self.unit.Service.Type not in IGNORE_STOPPED_SERVICE_TYPES and \
-                wantedBySignificant
+        if not (wantedBy - IGNORE_TARGETS):
+            return False
+        if self.unit.Service.Type == b'oneshot' and self.unit.Service.RemainAfterExit != b'yes':
+            return False
+
+        return True
 
     def __repr__(self):
         return f"Service(name={self.name}, type={self.unit.Service.Type}, active={self.unit.Unit.ActiveState}, load={self.unit.Unit.LoadState})"
