@@ -13,6 +13,8 @@ def main():
 
     predicate = PRESETS[args.preset]
 
+    print(f"Using preset: {args.preset}")
+
     services = get_services()
     for service in services:
         if predicate(service):
