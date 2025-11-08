@@ -1,7 +1,7 @@
 from query.services import get_services, Service
 from argparse import ArgumentParser
 
-PRESETS: dict[str, callable] = {
+PRESETS: dict[str, callable[[Service], bool]] = {
     "down": lambda service: service.is_down(),
     "all": lambda service: True,
 }
