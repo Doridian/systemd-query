@@ -1,12 +1,19 @@
 from pystemd.systemd1 import Manager, Unit
+from pystemd.base import SDInterface
 from os.path import basename
 from dataclasses import dataclass
+from typing import Any
 
 IGNORE_STOPPED_SERVICE_TYPES = {b'dbus'}
 IGNORE_TARGETS = {b'sleep.target', b'shutdown.target', b'timers.target'}
 ALLOWED_ENABLE_STATES = {b'enabled', b'static'}
 
-@dataclass(kw_only=True, frozen=True)
+SERIALIZE_IGNORE = {'properties', 'methods'}
+
+def serialize_systemd(interface: SDInterface) -> dict[str, Any]:
+    return {k: interface.__getattribute__(k) for k in dir(interface) if ((not k.startswith('_')) and k not in SERIALIZE_IGNORE)}
+
+@dataclass(kw_only=True, eq=True, frozen=True)
 class Service:
     name: bytes
     enable_state: bytes
@@ -41,6 +48,14 @@ class Service:
             return False
 
         return True
+
+    def asdict(self) -> dict[str, Any]:
+        return {
+            "name": self.name.decode('utf-8'),
+            "enable_state": self.enable_state.decode('utf-8'),
+            "unit": serialize_systemd(self.unit.Unit),
+            "service": serialize_systemd(self.unit.Service),
+        }
 
     def __repr__(self):
         return f"Service(unit={self.name}, active={self.unit.Unit.ActiveState}, load={self.unit.Unit.LoadState}, sub={self.unit.Unit.SubState})"
