@@ -35,7 +35,7 @@ class Service:
         return True
 
     def __repr__(self):
-        return f"Service(name={self.name}, type={self.unit.Service.Type}, active={self.unit.Unit.ActiveState}, load={self.unit.Unit.LoadState})"
+        return f"Service(unit={self.name}, active={self.unit.Unit.ActiveState}, load={self.unit.Unit.LoadState}, sub={self.unit.Unit.SubState})"
 
 def get_services() -> list[Service]:
     manager = Manager()
