@@ -1,11 +1,10 @@
 from query.services import get_services, Service
-from pystemd.base import SDInterface
 from json import dumps as json_dumps, JSONEncoder
 from subprocess import call
 from argparse import ArgumentParser
 from tempfile import NamedTemporaryFile
 
-PRESETS: dict[str, callable[[Service], bool]] = {
+PRESETS: dict[str, callable] = {
     "down": lambda service: service.is_down(),
     "all": lambda service: True,
 }
